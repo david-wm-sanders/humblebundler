@@ -22,10 +22,10 @@ if __name__ == '__main__':
         html_doc = html_f.read()
     soup = BeautifulSoup(html_doc, "html.parser")
 
-    # Find all donwload button divs
+    # Find all download button divs
     download_btn_divs = soup.find_all("div", class_="flexbtn active noicon js-start-download")
 
-    # Filter out download for PDF and video (Download) files
+    # Filter out buttons for PDF and video (Download) files
     valid_span_values = ["PDF", "Download"]
     links = []
     for dl_btn_div in download_btn_divs:
