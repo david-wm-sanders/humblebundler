@@ -5,6 +5,7 @@ Usage:
 """
 
 import subprocess
+import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -22,15 +23,21 @@ if __name__ == '__main__':
         html_doc = html_f.read()
     soup = BeautifulSoup(html_doc, "html.parser")
 
-    # Find all download button divs
+    # Find all download button divs, exit fast if zero found
     download_btn_divs = soup.find_all("div", class_="flexbtn active noicon js-start-download")
+    if not download_btn_divs:
+        print("No download button divs found in provided HTML file... exiting.")
+        sys.exit(1)
 
-    # Filter out buttons for PDF and video (Download) files
+    # Filter out buttons for PDF and video (Download) files, exit fast if zero found
     valid_span_values = ["PDF", "Download"]
     links = []
     for dl_btn_div in download_btn_divs:
         if dl_btn_div.span.text in valid_span_values:
             links.append(dl_btn_div.a["href"])
+    if not links:
+        print(f"No download links for {valid_span_values}... exiting.")
+        sys.exit(1)
 
     # Setup output directory
     dir_p = Path(args["<outputdir>"])
@@ -38,7 +45,7 @@ if __name__ == '__main__':
     if not dir_torrents_p.exists():
         dir_torrents_p.mkdir(parents=True, exist_ok=True)
 
-    # Download the .torrent files with requests
+    # Download the .torrent files with requests, exit fast if zero downloaded
     torrent_paths = []
     for link in links:
         # Extract the filename from the link URL
@@ -54,6 +61,9 @@ if __name__ == '__main__':
                 for chunk in r.iter_content(chunk_size=128):
                     f.write(chunk)
         torrent_paths.append((filename, str(torrent_p)))
+    if not torrent_paths:
+        print("No torrents download... exiting.")
+        sys.exit(1)
 
     # Fire up deluged
     print("Firing up deluged...")
